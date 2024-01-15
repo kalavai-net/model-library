@@ -1,0 +1,90 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: $namespace
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: $deployment_name
+  namespace: $namespace
+  labels:
+    llamacpp: model
+    model_library: model
+spec:
+  replicas: $replicas
+  selector:
+    matchLabels:
+      llamacpp: model
+      model_library: model
+  template:
+    metadata:
+      labels:
+        llamacpp: model
+        model_library: model
+    spec:
+      containers:
+      - name: llama-cpp-container
+        image: 3x3cut0r/llama-cpp-python:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: MODEL
+          value: "/model/llama-2-7b-chat.Q2_K.gguf"
+        #imagePullPolicy: Always
+        command: ["sh", "-c"]
+        args:
+        - |
+          pip install huggingface_hub
+          python -c 'from huggingface_hub import hf_hub_download
+          hf_hub_download(repo_id="$hf_repo_id", filename="hf_file_name", local_dir="/model", local_dir_use_symlinks=False, force_download=True)'
+          /docker-entrypoint.sh
+        resources:
+          limits:
+            cpu: $num_cpus # Deployment
+            memory: "$ram_memory"  # Deployment
+            
+          requests:
+            cpu: $num_cpus # must accommodate num-cores requested for execution
+            memory: "$ram_memory" # must accommodate for the model's weights
+            
+        volumeMounts:
+        - name: $deployment_name-storage
+          mountPath: "/model"
+      restartPolicy: Always
+      volumes:
+      - name: $deployment_name-storage
+        persistentVolumeClaim:
+          claimName: $deployment_name-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: $deployment_name
+  namespace: $namespace
+spec:
+  selector:
+    llamacpp: model
+    model_library: model
+  ports:
+    - name: https
+      port: 8000
+      #nodePort: 30543
+      protocol: TCP
+  type: NodePort
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: $deployment_name-pvc
+  namespace: $namespace
+spec:
+  storageClassName: longhorn-nr
+  accessModes:
+   - ReadWriteOnce
+  resources:
+   requests:
+    storage: $pvc_storage_request
+  selector:
+    deepsparse: model
+    model_library: model

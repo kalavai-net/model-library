@@ -1,0 +1,83 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: $namespace
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: $deployment_name
+  namespace: $namespace
+  labels:
+    deepsparse: model
+    model_library: model
+spec:
+  replicas: $replicas
+  selector:
+    matchLabels:
+      deepsparse: model
+      model_library: model
+  template:
+    metadata:
+      labels:
+        deepsparse: model
+        model_library: model
+    spec:
+      containers:
+      - name: deepsparse-container
+        image: $image
+        env:
+        - name: SPARSEZOO_MODELS_PATH
+          value: $sparsezoo_models_path
+        ports:
+        - containerPort: $container_port
+        command: ["sh", "-c"]
+        args:
+        - |
+          deepsparse.server --task $task --model_path "$model_path" --batch-size $batch_size --num-workers $num_workers --num-cores $num_cores
+        resources:
+          limits:
+            cpu: $cpu_limits
+            memory: $memory_limits
+          requests:
+            cpu: $cpu_requests
+            memory: $memory_requests
+        volumeMounts:
+        - name: $volume_mount_name
+          mountPath: $mount_path
+      restartPolicy: Always
+      volumes:
+      - name: $volume_name
+        persistentVolumeClaim:
+          claimName: $pvc_name
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: $service_name
+  namespace: $namespace
+spec:
+  selector:
+    deepsparse: model
+    model_library: model
+  ports:
+    - name: $port_name
+      port: $port
+      protocol: TCP
+  type: NodePort
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: $deployment_name-pvc
+  namespace: $namespace
+spec:
+  storageClassName: $deployment_name-storage
+  accessModes:
+   - ReadWriteOnce
+  resources:
+   requests:
+    storage: $pvc_storage_request
+  selector:
+    deepsparse: model
+    model_library: model

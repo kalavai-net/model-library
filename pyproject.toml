@@ -1,0 +1,36 @@
+[tool.poetry]
+name        = "model_library"
+version     = "0.1.0"
+description = "Libray of Deployable Things"
+authors     = ["Adam Tomkins <adam@kalavai.net>"]
+
+
+[tool.poetry.dependencies]
+python                  = ">= 3.8, < 4.0" 
+fastapi                 = { version = "0.101.1", extras = ["all"] }
+pyyaml                  = { version = "6.0.1" } 
+black                   = { version = ">= 22.1.0", optional = true }
+
+[tool.poetry.extras]
+
+dev = [
+    "black"
+]
+
+
+
+[tool.poetry.dev-dependencies]
+click = "*"
+pre-commit = "*"
+black = "*"
+xenon = "*"
+mypy = "*"
+pydocstyle = "*"
+
+
+[build-system]
+requires        = [
+    "poetry-core>=1.0.0",
+    "setuptools"  # for pip install -e
+]
+build-backend   = "poetry.core.masonry.api"
