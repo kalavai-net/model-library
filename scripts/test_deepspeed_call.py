@@ -7,8 +7,8 @@ E.G. docker deployment
 import time
 import requests
 
-SERVICE_URL = "http://0.0.0.0"
-SERVICE_PORT = "31863"
+SERVICE_URL = "http://178.62.13.8"
+SERVICE_PORT = "30091"
 SERVICE_ENDPOINT = "/v2/models/chat/infer"
 
 url = f"{SERVICE_URL}:{SERVICE_PORT}{SERVICE_ENDPOINT}"  # Server's port default to 5543

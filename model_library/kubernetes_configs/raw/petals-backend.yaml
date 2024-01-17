@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: petals-backend2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petals-deployment
+  namespace: petals-backend2
+  labels:
+    app: petals-backend2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: petals-backend2
+  template:
+    metadata:
+      labels:
+        app: petals-backend2
+    spec:
+      containers:
+      - name: petals-container
+        image: learningathome/petals:main
+        ports:
+        - containerPort: 31330
+        args: ["python", "-m", "petals.cli.run_server", "--port", "31330", "petals-team/StableBeluga2"]
+        resources:
+          limits:
+            nvidia.com/gpu: 1 # Adjust based on available GPU resources
+          requests:
+            nvidia.com/gpu: 1
+        volumeMounts:
+        - name: petals-cache
+          mountPath: /cache
+      restartPolicy: Always
+      volumes:
+      - name: petals-cache
+        persistentVolumeClaim:
+          claimName: petals-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: petals-service
+  namespace: petals-backend2
+spec:
+  selector:
+    app: petals-backend2
+  ports:
+    - port: 31330
+      protocol: TCP
+  type: NodePort
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: petals-pvc
+  namespace: petals-backend2
+spec:
+  storageClassName: longhorn-nr
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi # Adjust based on your cache needs

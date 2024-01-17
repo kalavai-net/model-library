@@ -1,18 +1,18 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: $namespace
+  name: benchmark
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: $deployment_name
-  namespace: $namespace
+  name: benchmarkmodel
+  namespace: benchmark
   labels:
     llamacpp: model
     model_library: model
 spec:
-  replicas: $replicas
+  replicas: 1
   selector:
     matchLabels:
       llamacpp: model
@@ -30,38 +30,38 @@ spec:
         - containerPort: 8000
         env:
         - name: MODEL
-          value: "/model/$hf_filename"
+          value: "/model/llama-2-7b-chat.Q2_K.gguf"
         #imagePullPolicy: Always
         command: ["sh", "-c"]
         args:
         - |
           pip install huggingface_hub
           python -c 'from huggingface_hub import hf_hub_download
-          hf_hub_download(repo_id="$hf_repo_id", filename="$hf_filename", local_dir="/model", local_dir_use_symlinks=False, force_download=True)'
+          hf_hub_download(repo_id="TheBloke/Llama-2-7B-Chat-GGUF", filename="llama-2-7b-chat.Q2_K.gguf", local_dir="/model", local_dir_use_symlinks=False, force_download=True)'
           /docker-entrypoint.sh
         resources:
           limits:
-            cpu: $num_cpus
-            memory: "$ram_memory"
+            cpu: 4
+            memory: "12Gi"
             
           requests:
-            cpu: $num_cpus # must accommodate num-cores requested for execution
-            memory: "$ram_memory" # must accommodate for the model's weights
+            cpu: 4 # must accommodate num-cores requested for execution
+            memory: "12Gi" # must accommodate for the model's weights
             
         volumeMounts:
-        - name: $deployment_name-storage
+        - name: benchmarkmodel-storage
           mountPath: "/model"
       restartPolicy: Always
       volumes:
-      - name: $deployment_name-storage
+      - name: benchmarkmodel-storage
         persistentVolumeClaim:
-          claimName: $deployment_name-pvc
+          claimName: benchmarkmodel-pvc
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: $deployment_name
-  namespace: $namespace
+  name: benchmarkmodel
+  namespace: benchmark
 spec:
   selector:
     llamacpp: model
@@ -76,12 +76,12 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: $deployment_name-pvc
-  namespace: $namespace
+  name: benchmarkmodel-pvc
+  namespace: benchmark
 spec:
   storageClassName: longhorn-nr
   accessModes:
    - ReadWriteOnce
   resources:
    requests:
-    storage: $pvc_storage_request
+    storage: 24Gi

@@ -1,6 +1,8 @@
 from pydantic import BaseModel, HttpUrl, Field
 from typing import List, Tuple, Dict, Optional, Any
+from model_library.utils import create_deployment_yaml
 import uuid
+import requests
 
 # Updated Pydantic models with added `id` and `API_key` for UserInformation
 
@@ -11,6 +13,19 @@ class ArchitectureCard(BaseModel):
     name: str
     description: str
     tags: Dict[str, Any]
+
+    health_endpoint: str = None
+
+    def check_health(self, url, port):
+        if self.health_endpoint is None:
+            return False
+
+        full_url = f"http://{url}:{port}/{self.health_endpoint}"
+        try:
+            response = requests.get(full_url)
+            return response.status_code == 200
+        except:
+            return False
 
 
 class ModelCard(BaseModel):
@@ -67,3 +82,8 @@ class ModelDeploymentCard(BaseModel):
             values=values,
             yaml=self.model_deployment_template.model_card.architecture.deployment_yaml,
         )
+
+    def extract_deployment_config(self) -> str:
+        values = self.extract_values()
+        config = create_deployment_yaml(values=values.values, template_file=values.yaml)
+        return config

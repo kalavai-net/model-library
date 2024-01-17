@@ -28,6 +28,8 @@ DEEPSPARSE_CHAT = ModelCard(
     },
 )
 
+TOOL_LIBRARY = ModelCard(id="tool-library-model", architecture=TOOL_LIBRARY, params={})
+
 
 def curate_model_cards():
     architecture_cards = []

@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: adam
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tool-library-authenticated
+  namespace: adam
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tool-library-app
+  template:
+    metadata:
+      labels:
+        app: tool-library-app
+    spec:
+      containers:
+      - name: tool-library-authenticated-container
+        image: python:3.8-slim
+        env:
+        ports:
+        - containerPort: 8000
+        env:
+        - name: TL_USE_AUTH
+          value: "True"
+        - name: TL_MASTER_KEY
+          value: "master"
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          apt-get update && apt-get install -y git
+          ls
+          git clone https://github.com/AdamRTomkins/tool_library.git /app/tool-library-authenticated
+          cd /app/tool-library-authenticated
+          # torch CPU
+          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+          pip install transformers tqdm numpy scikit-learn scipy nltk sentencepiece
+          pip install --no-deps sentence-transformers==2.2.2
+          pip install -e .
+          uvicorn tool_library.api:app --host 0.0.0.0 --port 8000
+        resources:
+          limits:
+            cpu: 2
+            memory: "4Gi"
+          requests:
+            cpu: 2 # must accommodate num-cores requested for execution
+            memory: "4Gi" # must accommodate for the tool's weights
+        volumeMounts:
+        - name: tool-library-authenticated-storage
+          mountPath: "/tool"
+      restartPolicy: Always
+      volumes:
+      - name: tool-library-authenticated-storage
+        persistentVolumeClaim:
+          claimName: tool-library-authenticated-pvc
+          
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tool-library-authenticated-service
+  namespace: adam
+spec:
+  selector:
+    app: tool-library-app
+  ports:
+    - name: http
+      port: 8000
+      #nodePort: 32701
+  type: NodePort
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tool-library-authenticated-pvc
+  namespace: adam
+spec:
+  storageClassName: longhorn-nr # Replace with your storage class name
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 12Gi # Adjust the storage size as needed

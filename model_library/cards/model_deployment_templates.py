@@ -26,6 +26,28 @@ MINIMAL_DEEPSPEED_DEPLOYMENT = ModelDeploymentTemplateCard(
     params={"deployment_name": "deepspeed-llama2-7b"},
 )
 
+OPEN_TOOL_LIBRARY_DEPLOYMENT_CARD = ModelDeploymentTemplateCard(
+    id=str(uuid.uuid4()),
+    name="The Open Magic Toolbox",
+    description="The Magic Toolbox for Infinate Tool Use Agents",
+    model_card=TOOL_LIBRARY,
+    deployment_card=TOOL_LIBRARY_DEPLOYMENT,
+    viable_deployment_cards=[TOOL_LIBRARY_DEPLOYMENT, TOOL_LIBRARY_DEPLOYMENT_AUTH],
+    benchmarks=[],
+    params={"deployment_name": "tool-library-unauthenticated"},
+)
+
+TOOL_LIBRARY_DEPLOYMENT_CARD = ModelDeploymentTemplateCard(
+    id=str(uuid.uuid4()),
+    name="The Closed Magic Toolbox",
+    description="The Magic Toolbox for Infinate Tool Use Agents, with authentification",
+    model_card=TOOL_LIBRARY,
+    deployment_card=TOOL_LIBRARY_DEPLOYMENT_AUTH,
+    viable_deployment_cards=[TOOL_LIBRARY_DEPLOYMENT, TOOL_LIBRARY_DEPLOYMENT_AUTH],
+    benchmarks=[],
+    params={"deployment_name": "tool-library-authenticated"},
+)
+
 
 def curate_cards():
     architecture_cards = []

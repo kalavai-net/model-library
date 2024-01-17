@@ -44,6 +44,20 @@ DEEPSPARSE_MINIMAL = DeploymentCard(
     },
 )
 
+TOOL_LIBRARY_DEPLOYMENT = DeploymentCard(
+    id="tool_library_deployment",
+    params={
+        "use_auth": "False",
+    },
+)
+
+TOOL_LIBRARY_DEPLOYMENT_AUTH = DeploymentCard(
+    id="tool_library_deployment",
+    params={
+        "use_auth": "True",
+    },
+)
+
 
 def curate_deployment_cards():
     architecture_cards = []

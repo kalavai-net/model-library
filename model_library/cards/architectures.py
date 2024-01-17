@@ -7,6 +7,7 @@ LLAMA_CPP = ArchitectureCard(
     description="The python llama.cpp engine",
     tags={"cpu": True, "gpu": True},
     deployment_yaml="llama_cpp_python.yaml",
+    health_endpoint="v1/models",
 )
 
 DEEPSPARSE = ArchitectureCard(
@@ -15,6 +16,16 @@ DEEPSPARSE = ArchitectureCard(
     name="deepsparse",
     description="Deepsparse Deployment for Chat Model",
     tags={"type": "deepsparse", "version": "v1.6.1"},
+)
+
+
+TOOL_LIBRARY = ArchitectureCard(
+    name="tool-library",
+    id=str(uuid.uuid4()),
+    description="The Magic Toolbox",
+    tags={},
+    deployment_yaml="tool_library_deployment.yaml",
+    health_endpoint="health",
 )
 
 

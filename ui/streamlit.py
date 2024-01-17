@@ -5,6 +5,9 @@ st.title("One Click Deployments")
 if "config" not in st.session_state:
     st.session_state["config"] = None
 
+if "deployments" not in st.session_state:
+    st.session_state["deployments"] = None
+
 
 # Get a list of all the models
 def deploy_generic_model(config):
@@ -149,17 +152,24 @@ if st.session_state.config:
         print(res)
 
 
-deployments = list_deployments(user.namespace)
+ctitle, crefresh = st.columns(2)
+with ctitle:
+    st.header("Deployments")
+with crefresh:
+    if st.button("Refresh"):
+        st.session_state.deployments = list_deployments(user.namespace)
 
-st.header("Deployments")
-for id, data in deployments.items():
-    a, b = st.columns(2)
-    with a:
-        st.write(id)
-    with b:
-        if st.button("Delete", key=id):
-            res = delete_deployment(user.namespace, id)
-            if res:
-                st.success("Deployment Deleted")
-            else:
-                st.error("Failed to Delete")
+if st.session_state.deployments:
+    for id, data in st.session_state.deployments.items():
+        a, b = st.columns(2)
+        with a:
+            with st.expander(id):
+                st.write(data)
+
+        with b:
+            if st.button("Delete", key=id):
+                res = delete_deployment(user.namespace, id)
+                if res:
+                    st.success("Deployment Deleted")
+                else:
+                    st.error("Failed to Delete")
