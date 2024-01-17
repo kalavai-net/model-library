@@ -34,7 +34,7 @@ spec:
         - |
           apt-get update && apt-get install -y git
           ls
-          git clone https://github.com/AdamRTomkins/tool_library.git /app/$deployment_name
+          git clone https://github.com/kalavai-net/tool_library.git /app/$deployment_name
           cd /app/$deployment_name
           # torch CPU
           pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
