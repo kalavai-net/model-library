@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+
 from model_library.models import (
     ModelDeploymentTemplateCard,
     UserInformation,
@@ -39,6 +40,10 @@ def validate_template(template: ModelDeploymentTemplateCard):
     return True
 
 
+# Endpoint to check health
+@app.get("/health/")
+async def health():
+    return HTTPException(status_code=200, detail="OK")
 
 
 

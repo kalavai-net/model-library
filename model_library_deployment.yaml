@@ -32,7 +32,7 @@ spec:
         - containerPort: 8000
         env:
         - name: TL_USE_AUTH
-          value: False
+          value: "False"
         - name: TL_MASTER_KEY
           value: ""
         command: ["/bin/sh", "-c"]
@@ -40,13 +40,10 @@ spec:
         - |
           apt-get update && apt-get install -y git
           ls
-          git clone https://github.com/kalavai-net/model_library.git /app/adam-model-library
+          pip install requests
+          git clone https://github.com/kalavai-net/model-library.git /app/adam-model-library
           cd /app/adam-model-library
           git checkout feature/mvp
-          # torch CPU
-          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-          pip install transformers tqdm numpy scikit-learn scipy nltk sentencepiece
-          pip install --no-deps sentence-transformers==2.2.2
           pip install -e .
           uvicorn model_library.api:app --host 0.0.0.0 --port 8000
         resources:
@@ -97,4 +94,4 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 12Gi # Adjust the storage size as needed
+      storage: 1Gi # Adjust the storage size as needed
