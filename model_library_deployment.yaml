@@ -1,15 +1,17 @@
+# deployment name = adam-model-library
+# namespace = adam
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: $namespace
+  name: adam
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: $deployment_name
-  namespace: $namespace
+  name: adam-model-library
+  namespace: adam
   labels:
-    magic_toolbox: $deployment_name
+    magic_toolbox: adam-model-library
     app: magic_toolbox
 spec:
   replicas: 1
@@ -19,33 +21,34 @@ spec:
   template:
     metadata:
       labels:
-        magic_toolbox: $deployment_name
+        magic_toolbox: adam-model-library
         app: magic_toolbox
     spec:
       containers:
-      - name: $deployment_name-container
+      - name: adam-model-library-container
         image: python:3.8-slim
         env:
         ports:
         - containerPort: 8000
         env:
         - name: TL_USE_AUTH
-          value: "$use_auth"
+          value: False
         - name: TL_MASTER_KEY
-          value: "$API_key"
+          value: ""
         command: ["/bin/sh", "-c"]
         args:
         - |
           apt-get update && apt-get install -y git
           ls
-          git clone https://github.com/kalavai-net/tool_library.git /app/$deployment_name
-          cd /app/$deployment_name
+          git clone https://github.com/kalavai-net/model_library.git /app/adam-model-library
+          cd /app/adam-model-library
+          git checkout feature/mvp
           # torch CPU
           pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
           pip install transformers tqdm numpy scikit-learn scipy nltk sentencepiece
           pip install --no-deps sentence-transformers==2.2.2
           pip install -e .
-          uvicorn tool_library.api:app --host 0.0.0.0 --port 8000
+          uvicorn model_library.api:app --host 0.0.0.0 --port 8000
         resources:
           limits:
             cpu: 2
@@ -54,22 +57,22 @@ spec:
             cpu: 2 # must accommodate num-cores requested for execution
             memory: "4Gi" # must accommodate for the tool's weights
         volumeMounts:
-        - name: $deployment_name-storage
+        - name: adam-model-library-storage
           mountPath: "/tool"
       restartPolicy: Always
       volumes:
-      - name: $deployment_name-storage
+      - name: adam-model-library-storage
         persistentVolumeClaim:
-          claimName: $deployment_name-pvc
+          claimName: adam-model-library-pvc
           
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: $deployment_name-service
-  namespace: $namespace
+  name: adam-model-library-service
+  namespace: adam
   labels:
-    magic_toolbox: $deployment_name
+    magic_toolbox: adam-model-library
     app: magic_toolbox
 spec:
   selector:
@@ -83,10 +86,10 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: $deployment_name-pvc
-  namespace: $namespace
+  name: adam-model-library-pvc
+  namespace: adam
   labels:
-    magic_toolbox: $deployment_name
+    magic_toolbox: adam-model-library
     app: magic_toolbox
 spec:
   storageClassName: longhorn-nr # Replace with your storage class name

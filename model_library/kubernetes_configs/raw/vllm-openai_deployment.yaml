@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vllm
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-app
+  namespace: vllm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm-app
+  template:
+    metadata:
+      labels:
+        app: vllm-app
+    spec:
+      #runtimeClassName: nvidia
+      containers:
+      - name: vllm-container
+        image: vllm/vllm-openai:latest
+        args: ["--model", "facebook/opt-350m"]
+        ports:
+        - containerPort: 8000
+        env:
+        - name: HUGGING_FACE_HUB_TOKEN
+          value: "<secret>"
+        resources:
+          limits:
+            nvidia.com/gpu: 1 # Specify the number of GPUs
+            cpu: 4
+            memory: "10Gi"
+          requests:
+            nvidia.com/gpu: 1 # Specify the number of GPUs
+            cpu: 4
+            memory: "10Gi"
+        volumeMounts:
+        - name: vllm-storage
+          mountPath: "/model"
+      restartPolicy: Always
+      volumes:
+      - name: vllm-storage
+        persistentVolumeClaim:
+          claimName: vllm-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-service
+  namespace: vllm
+spec:
+  selector:
+    app: vllm-app
+  ports:
+    - name: http
+      port: 8000
+  type: NodePort
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vllm-pvc
+  namespace: vllm
+spec:
+  storageClassName: longhorn-nr # Replace with your storage class name
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 12Gi # Adjust the storage size as needed
