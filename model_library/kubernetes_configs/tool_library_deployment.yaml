@@ -8,15 +8,18 @@ kind: Deployment
 metadata:
   name: $deployment_name
   namespace: $namespace
+  labels:
+    magic_toolbox: $deployment_name
+    app: magic_toolbox
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: tool-library-app
+      app: magic_toolbox  
   template:
     metadata:
       labels:
-        app: tool-library-app
+        app: magic_toolbox
     spec:
       containers:
       - name: $deployment_name-container
@@ -64,9 +67,12 @@ kind: Service
 metadata:
   name: $deployment_name-service
   namespace: $namespace
+  labels:
+    magic_toolbox_label: $deployment_name
+    app: magic_toolbox
 spec:
   selector:
-    app: tool-library-app
+    app: magic_toolbox
   ports:
     - name: http
       port: 8000
@@ -78,6 +84,9 @@ kind: PersistentVolumeClaim
 metadata:
   name: $deployment_name-pvc
   namespace: $namespace
+  labels:
+    magic_toolbox_label: $deployment_name
+    app: magic_toolbox
 spec:
   storageClassName: longhorn-nr # Replace with your storage class name
   accessModes:

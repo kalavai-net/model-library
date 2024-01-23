@@ -70,6 +70,7 @@ class DeploymentParams(BaseModel):
 class ModelDeploymentCard(BaseModel):
     model_deployment_template: ModelDeploymentTemplateCard
     user_information: UserInformation
+    override_params: Dict[str, Any] = {}
 
     def extract_values(self) -> Dict[str, Any]:
         values = {}
@@ -77,6 +78,7 @@ class ModelDeploymentCard(BaseModel):
         values.update(self.model_deployment_template.model_card.params)
         values.update(self.model_deployment_template.deployment_card.params)
         values.update(self.model_deployment_template.params)
+        values.update(self.override_params)
 
         return DeploymentParams(
             values=values,

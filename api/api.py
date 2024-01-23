@@ -39,6 +39,9 @@ def validate_template(template: ModelDeploymentTemplateCard):
     return True
 
 
+
+
+
 if __name__ == "__main__":
     import uvicorn
 
