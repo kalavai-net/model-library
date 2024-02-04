@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: local-ai-app
+  namespace: tools
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: local-ai-app
+  template:
+    metadata:
+      labels:
+        app: local-ai-app
+    spec:
+      containers:
+      - name: local-ai-container
+        image: localai/localai:v2.7.0-ffmpeg-core
+        ports:
+        - containerPort: 8080
+        args: ["phi-2"]
+        resources:
+          limits:
+            cpu: 2
+            memory: "10Gi"
+          requests:
+            cpu: 2
+            memory: "10Gi"
+        volumeMounts:
+        - name: local-ai-storage
+          mountPath: "/model"
+      restartPolicy: Always
+      volumes:
+      - name: local-ai-storage
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: local-ai-service
+  namespace: tools
+  labels:
+    app: local-ai-app
+spec:
+  type: ClusterIP
+  selector:
+    app: local-ai-app
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: local-ai-ingress
+  namespace: tools
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    kubernetes.io/tls-acme: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+    # Add a DNS record to match this URL to the IP of the cluster
+    - host: local-ai.test.k8s.mvp.kalavai.net
+      http:
+        paths:
+          - pathType: Prefix
+            backend:
+              service:
+                name: local-ai-service
+                port:
+                  number: 80
+            path: /
+  tls:
+  - hosts:
+    - local-ai.test.k8s.mvp.kalavai.net
+    secretName: local-ai.test.k8s.mvp.kalavai.net-tls
+
+

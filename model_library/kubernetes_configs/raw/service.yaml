@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: local-ai-service
+  namespace: tools
+  labels:
+    app: local-ai-app
+spec:
+  type: ClusterIP
+  selector:
+    app: local-ai-app
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP

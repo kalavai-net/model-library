@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: local-ai-app
+  namespace: tools
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: local-ai-app
+  template:
+    metadata:
+      labels:
+        app: local-ai-app
+    spec:
+      containers:
+      - name: local-ai-container
+        image: localai/localai:v2.7.0-ffmpeg-core
+        ports:
+        - containerPort: 8080
+        args: ["phi-2"]
+        resources:
+          limits:
+            cpu: 2
+            memory: "10Gi"
+          requests:
+            cpu: 2
+            memory: "10Gi"
+        volumeMounts:
+        - name: local-ai-storage
+          mountPath: "/model"
+      restartPolicy: Always
+      volumes:
+      - name: local-ai-storage
+          
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: local-ai-service
+  namespace: tools
+spec:
+  selector:
+    app: local-ai-app
+  ports:
+    - name: http
+      port: 8080
+      #nodePort: 32702
+  type: NodePort
