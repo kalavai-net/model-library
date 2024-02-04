@@ -39,6 +39,15 @@ def curate_model_cards():
     return architecture_cards
 
 
+LOCAL_AI_MODEL_CARD = ModelCard(
+    id=str(uuid.uuid4()),
+    architecture=LOCAL_AI_ARCHITECTURE,
+    params={
+        "model_name":"phi-2"
+    }
+)
+
+
 # Curate the list of ArchitectureCard instances
 
 MODELS = curate_model_cards()

@@ -59,8 +59,8 @@ spec:
       restartPolicy: Always
       volumes:
       - name: $deployment_name-storage
-        persistentVolumeClaim:
-          claimName: $deployment_name-pvc
+        #persistentVolumeClaim:
+        #  claimName: $deployment_name-pvc
           
 ---
 apiVersion: v1
@@ -79,19 +79,19 @@ spec:
       port: 8000
       #nodePort: 32701
   type: NodePort
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: $deployment_name-pvc
-  namespace: $namespace
-  labels:
-    magic_toolbox: $deployment_name
-    app: magic_toolbox
-spec:
-  storageClassName: longhorn-nr # Replace with your storage class name
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 12Gi # Adjust the storage size as needed
+#---
+#apiVersion: v1
+#kind: PersistentVolumeClaim
+#metadata:
+#  name: $deployment_name-pvc
+#  namespace: $namespace
+#  labels:
+#    magic_toolbox: $deployment_name
+#    app: magic_toolbox
+#spec:
+#  storageClassName: longhorn-nr # Replace with your storage class name
+#  accessModes:
+#    - ReadWriteOnce
+#  resources:
+#    requests:
+#      storage: 50Mb # Adjust the storage size as needed

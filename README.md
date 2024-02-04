@@ -39,3 +39,17 @@ The current dirt quick UI is a streamlit endpoint that depends on both a Kube Wa
 2. We have the code in kubewatcher, we could quite possibly include a ray deployment option here too.
 
 
+# Notes
+
+## Kubernetes
+
+1. When in doubt, kill a whole namespace
+
+2. To connect to an endpoint with at Nodeport:
+- Get your IP from .kube/config
+- Get the Binded Port from kubectl get services -n namespace (which is in ~30000)
+- This can be set in the config, but just dont.
+
+3. You know when your deepsparse endpoint is running through pod logs
+- kubectl get pods -n namespace
+- kubectl logs <pod name> -n namespace

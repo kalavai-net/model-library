@@ -66,6 +66,15 @@ def curate_deployment_cards():
             architecture_cards.append(obj)
     return architecture_cards
 
+LOCAL_AI_DEPLOYMENT_CARD = DeploymentCard(
+    id=str(uuid.uuid4()),
+    params={
+        "cpu_limits": "2",
+        "memory_limits": "10Gi",
+        "cpu_requests": "2",
+        "memory_requests": "10Gi"
+    }
+)
 
 # Curate the list of ArchitectureCard instances
 

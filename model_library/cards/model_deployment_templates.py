@@ -49,6 +49,16 @@ TOOL_LIBRARY_DEPLOYMENT_CARD = ModelDeploymentTemplateCard(
 )
 
 
+
+LOCAL_AI_DEPLOYMENT_TEMPLATE_CARD = ModelDeploymentTemplateCard(
+    id=str(uuid.uuid4()),
+    name="Local AI CPU Deployment",
+    description="Deploying Local AI on CPU",
+    model_card=LOCAL_AI_MODEL_CARD,
+    deployment_card=LOCAL_AI_DEPLOYMENT_CARD,
+    params={"deployment_name": "local-ai-cpu"}
+)
+
 def curate_cards():
     architecture_cards = []
     for name, obj in globals().items():

@@ -39,5 +39,15 @@ def curate_architecture_cards():
 
 
 # Curate the list of ArchitectureCard instances
+# Example Instances
+LOCAL_AI_ARCHITECTURE = ArchitectureCard(
+    id=str(uuid.uuid4()),
+    deployment_yaml="local_ai_cpu.yaml",
+    name="Local AI CPU Deployment",
+    description="Local AI deployment with CPU support",
+    tags={"cpu": True, "gpu": False}
+)
+
+
 
 ARCHITECTURES = curate_architecture_cards()
