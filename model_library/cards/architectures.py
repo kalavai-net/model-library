@@ -48,6 +48,13 @@ LOCAL_AI_ARCHITECTURE = ArchitectureCard(
     tags={"cpu": True, "gpu": False}
 )
 
-
+KALAVAI_RAG_ARCHITECTURE = ArchitectureCard(
+    id=str(uuid.uuid4()),
+    deployment_yaml="kalavai_rag_deployment.yaml",
+    name="Kalavai Rag Tool",
+    description="RAG tool deployment architecture.",
+    tags={},
+    health_endpoint="/health"  # or specify if applicable
+)
 
 ARCHITECTURES = curate_architecture_cards()

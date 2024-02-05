@@ -76,6 +76,18 @@ LOCAL_AI_DEPLOYMENT_CARD = DeploymentCard(
     }
 )
 
+# Deployment Specific Details
+RAG_DEPLOYMENT_CARD = DeploymentCard(
+    id=str(uuid.uuid4()),
+    params={
+        "cpu_limits": "2",
+        "memory_limits": "4Gi",
+        "cpu_requests": "2",
+        "memory_requests": "4Gi",
+        "replicas": 1,
+    }
+)
+
 # Curate the list of ArchitectureCard instances
 
 DEPLOYMENTS = curate_deployment_cards()

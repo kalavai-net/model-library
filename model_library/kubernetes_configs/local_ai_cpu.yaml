@@ -18,7 +18,7 @@ spec:
         image: localai/localai:v2.7.0-ffmpeg-core
         ports:
         - containerPort: 8080
-        args: ["phi-2"]
+        args: ["phi-2"] # we should param this 
         resources:
           limits:
             cpu: $cpu_limits

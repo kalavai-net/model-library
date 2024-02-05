@@ -59,6 +59,19 @@ LOCAL_AI_DEPLOYMENT_TEMPLATE_CARD = ModelDeploymentTemplateCard(
     params={"deployment_name": "local-ai-cpu"}
 )
 
+RAG_DEPLOYMENT_TEMPLATE_CARD = ModelDeploymentTemplateCard(
+    id=str(uuid.uuid4()),
+    name="RAG Tool Deployment",
+    description="Deployment template for RAG tool with Python 3.8-slim container.",
+    model_card=RAG_MODEL_CARD,
+    deployment_card=RAG_DEPLOYMENT_CARD,
+    params={        
+        "deployment_name": "rag-tool-test",
+        "rag_use_auth": "False",
+        "rag_master_key": ""
+    }
+)
+
 def curate_cards():
     architecture_cards = []
     for name, obj in globals().items():

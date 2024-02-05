@@ -47,6 +47,11 @@ LOCAL_AI_MODEL_CARD = ModelCard(
     }
 )
 
+RAG_MODEL_CARD = ModelCard(
+    id=str(uuid.uuid4()),
+    architecture=KALAVAI_RAG_ARCHITECTURE,
+    params={}  # Example environment variables
+)
 
 # Curate the list of ArchitectureCard instances
 
