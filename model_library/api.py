@@ -41,7 +41,7 @@ def validate_template(template: ModelDeploymentTemplateCard):
 
 
 # Endpoint to check health
-@app.get("/health/")
+@app.get("/health")
 async def health():
     return HTTPException(status_code=200, detail="OK")
 

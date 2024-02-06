@@ -8,115 +8,44 @@ if "config" not in st.session_state:
 if "deployments" not in st.session_state:
     st.session_state["deployments"] = None
 
-
-# Get a list of all the models
-def deploy_generic_model(config):
-    import requests
-    import json
-
-    # Prepare the request data
-    data = {"config": config}
-
-    # Define the URL and headers
-    url = "http://0.0.0.0:8000/v1/deploy_generic_model"
-    headers = {"accept": "application/json", "Content-Type": "application/json"}
-
-    # Make the POST request
-    response = requests.post(url, headers=headers, data=json.dumps(data))
-
-    # Check the response
-    if response.status_code == 200:
-        st.write(response)
-        print("Deployment successful.")
-        return response.json()
-    else:
-        print(f"Deployment failed with status code {response.status_code}.")
-        st.write(response.text)
-        return None
-
-
-def list_deployments(namespace):
-    import requests
-    import json
-
-    # Prepare the request data
-    data = {"namespace": namespace}
-
-    # Define the URL and headers
-    url = "http://0.0.0.0:8000/v1/list_deepsparse_deployments"
-    headers = {"accept": "application/json", "Content-Type": "application/json"}
-
-    # Make the POST request
-    response = requests.post(url, headers=headers, data=json.dumps(data))
-
-    # Check the response
-    if response.status_code == 200:
-        print("Request successful.")
-        return response.json()
-    else:
-        print(f"Request failed with status code {response.status_code}.")
-        return None
-
-
-def get_deployments(config):
-    import requests
-    import json
-
-    # Prepare the request data
-    data = {"config": config}
-
-    # Define the URL and headers
-    url = "http://0.0.0.0:8000/v1/deploy_generic_model"
-    headers = {"accept": "application/json", "Content-Type": "application/json"}
-
-    # Make the POST request
-    response = requests.post(url, headers=headers, data=json.dumps(data))
-
-    # Check the response
-    if response.status_code == 200:
-        st.write(response)
-        print("Deployment successful.")
-        return response.json()
-    else:
-        print(f"Deployment failed with status code {response.status_code}.")
-        st.write(response.text)
-        return None
-
-
-def delete_deployment(namespace, deployment_name):
-    import requests
-    import json
-
-    # Prepare the request data
-    data = {"namespace": namespace, "deployment_name": deployment_name}
-
-    # Define the URL and headers
-    url = "http://0.0.0.0:8000/v1/delete_deepsparse_model"
-    headers = {"accept": "application/json", "Content-Type": "application/json"}
-
-    # Make the POST request
-    response = requests.post(url, headers=headers, data=json.dumps(data))
-
-    # Check the response
-    if response.status_code == 200:
-        print("Delete request successful.")
-        return response.json()
-    else:
-        print(f"Delete request failed with status code {response.status_code}.")
-        return None
-
-
-from model_library.api_wrapper import FastAPIWrapper
+from model_library.client import ModelLibraryClient
+from kube_watcher.client import KubeWatcherClient
 from model_library.models import *
 
-library = FastAPIWrapper("http://0.0.0.0:8001")
 
 with st.sidebar:
     st.header("User")
     namespace = st.text_input("User Name", "adam")
     api_key = st.text_input("API Key", "XXXXXXX")
-
     user = UserInformation(id=namespace, namespace=namespace, API_key=api_key)
+
+    st.header("Model Library")
+    model_library_url = st.text_input("Model Library URL", "http://0.0.0.0:8001")
+    model_library_api_key = st.text_input("API Key", "XXXX")
+
+    library = ModelLibraryClient(model_library_url, model_library_api_key)
+
+    if library.health():
+        st.success("Model Library is healthy")
+    else:
+        st.error("Model Library is not available")
+
+    st.session_state["library"] = library
+
+    st.header("Kube Watcher")
+    kube_watcher_url = st.text_input("Kube Watcher URL", "http://0.0.0.0:8000")
+    kube_watcher_api_key = st.text_input("API Key", "")
+    kube_watcher = KubeWatcherClient(kube_watcher_url, kube_watcher_api_key)
+
+    
+
+    if kube_watcher.health():
+        st.success("Kube Watcher is healthy")
+
+    else:
+        st.error("Kube Watcher is not available")
+
+    st.session_state["kube_watcher"] = kube_watcher 
 
 templates = {
     f'{t["id"]} {t["name"]}': t
@@ -139,6 +68,9 @@ with st.expander("Architecture Card"):
 with st.expander("Deployment"):
     st.write(template["deployment_card"])
 
+with st.expander("Deployment Template Card"):
+    st.write(template)
+
 if st.button("Generate Config"):
     config = library.create_kubernetes_deployment(template=template, user=user.dict())
     st.session_state["config"] = config
@@ -148,7 +80,7 @@ if st.button("Generate Config"):
 
 if st.session_state.config:
     if st.button("Deploy"):
-        res = deploy_generic_model(config=st.session_state.config)
+        res = kube_watcher.deploy_generic_model({"config":st.session_state.config})
         print(res)
 
 
@@ -157,19 +89,35 @@ with ctitle:
     st.header("Deployments")
 with crefresh:
     if st.button("Refresh"):
-        st.session_state.deployments = list_deployments(user.namespace)
+        st.session_state.deployments = kube_watcher.get_resources_with_label(user.namespace, label_key="app")
 
 if st.session_state.deployments:
-    for id, data in st.session_state.deployments.items():
-        a, b = st.columns(2)
+    for data in st.session_state.deployments:
+        a, b, c,d, e  = st.columns(5)
         with a:
-            with st.expander(id):
-                st.write(data)
-
+            st.write(data["name"])
         with b:
-            if st.button("Delete", key=id):
-                res = delete_deployment(user.namespace, id)
+            st.write(data["label_key"])
+        with c:
+            st.write(data["label_value"])
+        with d:
+            if len(data["node_ports"]):
+
+                port = max(data["node_ports"])
+                url = f"http://178.62.13.8:{port}/"
+                st.write(f"[{port}]({url})")
+
+        with e:
+            if st.button("Delete", key=data["name"]):
+                res = kube_watcher.delete_labeled_resources({"namespace":user.namespace, "label":data["label_key"], "value":data["label_value"]})
+
                 if res:
                     st.success("Deployment Deleted")
+                    st.write(res)
                 else:
                     st.error("Failed to Delete")
+        
+        with st.expander(data["name"]):
+            st.write(data)
+
+        

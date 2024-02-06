@@ -48,8 +48,6 @@ TOOL_LIBRARY_DEPLOYMENT_CARD = ModelDeploymentTemplateCard(
     params={"deployment_name": "tool-library-authenticated"},
 )
 
-
-
 LOCAL_AI_DEPLOYMENT_TEMPLATE_CARD = ModelDeploymentTemplateCard(
     id=str(uuid.uuid4()),
     name="Local AI CPU Deployment",
