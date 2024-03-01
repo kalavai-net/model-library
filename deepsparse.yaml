@@ -1,0 +1,81 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: adam-test
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deepsparse-model
+  namespace: adam-test
+  labels:
+    deepsparse: model
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      deepsparse: model
+  template:
+    metadata:
+      labels:
+        deepsparse: model
+    spec:
+      containers:
+      - name: deepsparse-container
+        image: ghcr.io/neuralmagic/deepsparse:v1.6.1
+        env:
+        - name: SPARSEZOO_MODELS_PATH
+          value: "/home/user/llama"
+        ports:
+        - containerPort: 5543
+        #imagePullPolicy: Always
+        command: ["sh", "-c"]
+        # Download, flatten files in a single directory and serve with deepsparse.server
+        args:
+        - |
+          deepsparse.server --task chat --model_path "zoo:llama2-7b-llama2_chat_llama2_pretrain-base_quantized" --batch-size 1 --num-workers 4 --num-cores 4
+        resources:
+          limits:
+            cpu: 6
+            memory: "18Gi"
+            #ephemeral-storage: "$ephemeral_memory"
+          requests:
+            cpu: 6 # must accommodate num-cores requested for execution
+            memory: "18Gi" # must accommodate for the model's weights
+            #ephemeral-storage: "$ephemeral_memory"
+        volumeMounts:
+        - name: deepsparse-model-storage
+          mountPath: "/home/user"
+      restartPolicy: Always
+      volumes:
+      - name: deepsparse-model-storage
+        persistentVolumeClaim:
+          claimName: deepsparse-model-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: deepsparse-model
+  namespace: adam-test
+spec:
+  selector:
+    deepsparse: model
+  ports:
+    - name: https
+      port: 5543
+      #nodePort: 30543
+      protocol: TCP
+  type: NodePort
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: deepsparse-model-pvc
+  namespace: adam-test
+spec:
+  storageClassName: longhorn-nr
+  accessModes:
+   - ReadWriteOnce
+  resources:
+   requests:
+    storage: 30Gi

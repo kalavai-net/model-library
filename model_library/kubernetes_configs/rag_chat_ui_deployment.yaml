@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: $namespace
+  name: $deployment_name
+spec:
+  replicas: $replicas
+  selector:
+    matchLabels:
+      app: $deployment_name
+  template:
+    metadata:
+      labels:
+        app: $deployment_name
+    spec:
+      containers:
+      - name: chat-ui-container
+        image: python:3.11-slim
+        ports:
+        - containerPort: 8000
+        env:
+        - name: LLM_API_KEY
+          value: "$llm_api_key"
+        - name: LLM_MODEL
+          value: "$llm_model"
+        - name: LLM_BASE_URL
+          value: "$llm_base_url"
+        - name: RETRIEVER_BASE_URL
+          value: "$retriever_base_url"
+        - name: RETRIEVER_API_KEY
+          value: "$retriever_api_key"
+        - name: CHAT_USE_AUTH
+          value: "$chat_use_auth"
+        - name: USERNAME
+          value: "$username"
+        - name: PASSWORD
+          value: "$password"
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          apt-get update && apt-get install -y git
+          pip install chainlit
+          apt-get install -y gettext
+          git clone https://github.com/kalavai-net/tool_library.git /app/tool_library
+          cd /app/tool_library
+          git checkout feature/updates          
+          cd tool_library/example_tools/chat_ui
+          pip install -r requirements.txt
+          sh prepare.sh
+          chainlit run chat_ui.py --host 0.0.0.0 --port 8000
+        resources:
+          limits:
+            cpu: $cpu_limits
+            memory: $memory_limits
+          requests:
+            cpu: $cpu_requests
+            memory: $memory_requests
+        volumeMounts:
+        - name: ${deployment_name}-storage
+          mountPath: "/tool"
+      restartPolicy: Always
+      volumes:
+      - name: ${deployment_name}-storage
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${deployment_name}-service
+  namespace: $namespace
+  labels:
+    app: $deployment_name
+spec:
+  selector:
+    app: $deployment_name
+  ports:
+    - name: http
+      port: 8000
+  type: NodePort
