@@ -55,10 +55,6 @@ spec:
         - name: model-library-storage
           mountPath: "/tool"
       restartPolicy: Always
-      volumes:
-      - name: model-library-storage
-        persistentVolumeClaim:
-          claimName: model-library-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -75,18 +71,3 @@ spec:
       port: 8000
       #nodePort: 32701
   type: NodePort
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: model-library-pvc
-  namespace: adam
-  labels:
-    app: model-library
-spec:
-  storageClassName: longhorn-nr # Replace with your storage class name
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi # Adjust the storage size as needed
