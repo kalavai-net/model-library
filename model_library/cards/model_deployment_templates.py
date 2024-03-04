@@ -58,7 +58,7 @@ LOCAL_AI_DEPLOYMENT_TEMPLATE_CARD = ModelDeploymentTemplateCard(
 )
 
 RAG_DEPLOYMENT_TEMPLATE_CARD = ModelDeploymentTemplateCard(
-    id=str(uuid.uuid4()),
+    id="rag-tool",
     name="RAG Tool Deployment",
     description="Deployment template for RAG tool with Python 3.8-slim container.",
     model_card=RAG_MODEL_CARD,
