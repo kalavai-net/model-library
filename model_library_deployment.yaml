@@ -3,38 +3,36 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: adam
+  name: libraries
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: adam-model-library
-  namespace: adam
+  name: model-library
+  namespace: libraries
   labels:
-    magic_toolbox: adam-model-library
-    app: magic_toolbox
+    app: model-library
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: magic_toolbox  
+      app: model-library  
   template:
     metadata:
       labels:
-        magic_toolbox: adam-model-library
-        app: magic_toolbox
+        app: model-library
     spec:
       containers:
-      - name: adam-model-library-container
+      - name: model-library-container
         image: python:3.8-slim
         env:
         ports:
         - containerPort: 8000
         env:
         - name: TL_USE_AUTH
-          value: "False"
+          value: "True"
         - name: TL_MASTER_KEY
-          value: ""
+          value: "CARLOS_ANNIE_ADAM_KALAVAI"
         command: ["/bin/sh", "-c"]
         args:
         - |
@@ -54,26 +52,24 @@ spec:
             cpu: 2 # must accommodate num-cores requested for execution
             memory: "4Gi" # must accommodate for the tool's weights
         volumeMounts:
-        - name: adam-model-library-storage
+        - name: model-library-storage
           mountPath: "/tool"
       restartPolicy: Always
       volumes:
-      - name: adam-model-library-storage
+      - name: model-library-storage
         persistentVolumeClaim:
-          claimName: adam-model-library-pvc
-          
+          claimName: model-library-pvc
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: adam-model-library-service
-  namespace: adam
+  name: model-library-service
+  namespace: model-library
   labels:
-    magic_toolbox: adam-model-library
-    app: magic_toolbox
+    app: model-library
 spec:
   selector:
-    app: magic_toolbox
+    app: model-library
   ports:
     - name: http
       port: 8000
@@ -83,11 +79,10 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: adam-model-library-pvc
+  name: model-library-pvc
   namespace: adam
   labels:
-    magic_toolbox: adam-model-library
-    app: magic_toolbox
+    app: model-library
 spec:
   storageClassName: longhorn-nr # Replace with your storage class name
   accessModes:
